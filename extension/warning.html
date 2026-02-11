@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Warning</title>
+    <link rel="stylesheet" href="warning.css">
+</head>
+<body>
+
+<div class="overlay">
+    <div class="card">
+
+        <div class="header">
+            <div class="icon">&#128737;</div>
+            <div>
+                <h1>Security Warning</h1>
+                <p id="riskLevel" class="risk-level"></p>
+            </div>
+        </div>
+
+        <p id="mainMessage" class="main-message"></p>
+
+        <div class="info-section">
+            <p><strong>Blocked URL:</strong></p>
+            <p id="url" class="url"></p>
+
+            <p><strong>Detection Source:</strong></p>
+            <p id="source"></p>
+
+            <div id="probabilitySection" style="display:none;">
+                <p><strong>Confidence Level:</strong></p>
+                <p id="prob"></p>
+            </div>
+        </div>
+
+        <div class="reason-section">
+            <h3>Threat Indicators</h3>
+            <ul id="reasons"></ul>
+        </div>
+
+        <div class="footer">
+            <button id="continueBtn" class="continue-btn" style="display:none;">
+                Continue Anyway
+            </button>
+
+            <button id="backBtn" class="back-btn">
+                Return to Safety
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script src="warning.js"></script>
+</body>
+</html>
