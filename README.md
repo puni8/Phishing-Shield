@@ -20,7 +20,7 @@ A browser extension that detects phishing websites in real-time using:
 
 ---
 
-## 🏗 Architecture
+##  Architecture
 
 User URL  
 ↓  
@@ -67,13 +67,13 @@ Extension Setup
 4. Click "Load Unpacked"
 5. Select extension/ folder
 
-🛡 Detection Logic
+ Detection Logic
 
 Case	                    Behavior
 URL in PhishTank	    Hard block
 ML High Risk	            Warning + Continue
 Legitimate	            No UI
 
-📌 Disclaimer
+Disclaimer
 
 This project is for educational purposes only.
