@@ -8,15 +8,15 @@ A browser extension that detects phishing websites in real-time using:
 
 ---
 
-## 🚀 Features
+##  Features
 
-- 🔍 URL-based phishing detection
-- 📊 ML model for unknown threats
-- 📂 Database-based hard blocking
-- ⚠ Structured warning page with risk level
-- 🟠 Continue option for ML-only detections
-- 🔴 Hard block for verified phishing URLs
-- 🟢 No interference with legitimate sites
+-  URL-based phishing detection
+-  ML model for unknown threats
+-  Database-based hard blocking
+-  Structured warning page with risk level
+-  Continue option for ML-only detections
+-  Hard block for verified phishing URLs
+-  No interference with legitimate sites
 
 ---
 
@@ -28,8 +28,8 @@ Extension intercepts navigation
 ↓  
 Flask backend API  
 ↓  
-1️⃣ PhishTank database check  
-2️⃣ ML prediction  
+ PhishTank database check  
+ ML prediction  
 ↓  
 Explanation engine  
 ↓  
@@ -37,7 +37,7 @@ Warning UI (if phishing)
 
 ---
 
-## 🧠 ML Model
+##  ML Model
 
 - TF-IDF vectorization
 - Logistic Regression classifier
@@ -47,7 +47,7 @@ Warning UI (if phishing)
 
 ---
 
-## 📦 Installation
+##  Installation
 
 ### Backend Setup
 
