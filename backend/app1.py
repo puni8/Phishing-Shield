@@ -1,147 +1,81 @@
 from flask import Flask, request, jsonify
 import joblib
 import pandas as pd
-import re
+from urllib.parse import urlparse
+import numpy as np
+from lime.lime_tabular import LimeTabularExplainer
 
 app = Flask(__name__)
 
+# FEATURE EXTRACTION
+def extract_features(url):
+    parsed = urlparse(url)
+    features = {}
 
-# URL Normalization Function
+    features['URLLength'] = len(url)
+    features['DomainLength'] = len(parsed.netloc)
+    features['NoOfSubDomain'] = len(parsed.netloc.split('.')) - 2
+    features['TLDLength'] = len(parsed.netloc.split('.')[-1]) if '.' in parsed.netloc else 0
 
-def normalize_url(url):
-    url = url.lower().strip()
-    url = re.sub(r'^https?://', '', url)   # remove http/https
-    url = re.sub(r'^www\.', '', url)      # remove www
-    url = url.rstrip('/')                 # remove trailing slash
-    return url
+    features['HasObfuscation'] = 1 if '%' in url else 0
+    features['NoOfObfuscatedChar'] = url.count('%')
 
+    tld = parsed.netloc.split('.')[-1] if '.' in parsed.netloc else 'unknown'
+    features['tld'] = hash(tld) % 100  # simple encoding
 
+    # Default values
+    features['URLSimilarityIndex'] = 0
+    features['CharContinuationRate'] = 0
+    features['URLCharProb'] = 0
+    features['HasTitle'] = 0
+    features['HasFavicon'] = 0
+    features['IsResponsive'] = 0
+    features['Robots'] = 0
 
-# Load ML model + vectorizer
-
-model = joblib.load("phishing_model.pkl")
-vectorizer = joblib.load("vectorizer.pkl")
-
-
-
-# Load dataset
-
-df = pd.read_csv("final_dataset.csv")
-df["url"] = df["url"].apply(normalize_url)
-
-phishing_urls = set(df[df["label"] == 1]["url"])
-legitimate_urls = set(df[df["label"] == 0]["url"])
-
-print("Phishing URLs loaded:", len(phishing_urls))
-print("Legitimate URLs loaded:", len(legitimate_urls))
+    return features
 
 
+# LIME EXPLAINER
+explainer = LimeTabularExplainer(
+    training_data=np.zeros((1, len(feature_order))),
+    feature_names=feature_order,
+    class_names=['Legitimate', 'Phishing'],
+    mode='classification'
+)
 
-# Trusted Whitelist (High Reputation Domains)
-
-trusted_domains = {
-    "google.com",
-    "amazon.com",
-    "microsoft.com",
-    "facebook.com",
-    "apple.com",
-    "youtube.com",
-    "linkedin.com"
-}
-
-
-
-# Explanation Engine
-
-def generate_explanations(url):
-    reasons = []
-
-    # IP-based URL
-    if re.search(r"\d+\.\d+\.\d+\.\d+", url):
-        reasons.append("IP-based URL detected")
-
-    # Long URL
-    if len(url) > 75:
-        reasons.append("Unusually long URL detected")
-
-    # Suspicious keywords
-    suspicious_words = ["login", "verify", "update", "secure", "bank", "account"]
-    for word in suspicious_words:
-        if word in url:
-            reasons.append(f"Suspicious keyword detected: '{word}'")
-
-    # @ symbol
-    if "@" in url:
-        reasons.append("URL contains '@' symbol")
-
-    # Multiple subdomains
-    if url.count('.') > 4:
-        reasons.append("Multiple subdomains detected")
-
-    return reasons
-
-
-
-# Prediction Route
-
-@app.route("/predict", methods=["POST"])
+# API
+@app.route('/predict', methods=['POST'])
 def predict():
+    data = request.json
+    url = data['url']
 
-    data = request.get_json()
+    features = extract_features(url)
+    df = pd.DataFrame([features])
 
-    if not data or "url" not in data:
-        return jsonify({"error": "URL not provided"}), 400
+    df = df[feature_order]
+    df_scaled = scaler.transform(df)
 
-    # Normalize input
-    url = normalize_url(data["url"])
+    prediction = model.predict(df_scaled)[0]
+    prob = model.predict_proba(df_scaled)[0][1]
 
-    # Verified phishing database
-    if url in phishing_urls:
-        return jsonify({
-            "status": "phishing",
-            "source": "Verified Phishing Database",
-            "probability": 1.0,
-            "reasons": ["URL found in verified phishing dataset"]
-        })
+    # LIME explanation
+    exp = explainer.explain_instance(
+        df_scaled[0],
+        model.predict_proba,
+        num_features=5
+    )
 
-    # Verified legitimate database
-    if url in legitimate_urls:
-        return jsonify({
-            "status": "legitimate",
-            "source": "Verified Legitimate Database",
-            "probability": 0.0
-        })
+    explanation = [f[0] for f in exp.as_list()]
 
-    # Trusted whitelist
-    if url in trusted_domains:
-        return jsonify({
-            "status": "legitimate",
-            "source": "Trusted Domain Whitelist",
-            "probability": 0.0
-        })
+    result = "Phishing" if prediction == 1 else "Legitimate"
 
-    # ML Prediction (fallback)
-    url_vec = vectorizer.transform([url])
-    prediction = model.predict(url_vec)[0]
-    probability = model.predict_proba(url_vec)[0][1]
-
-    if prediction == 1:
-        reasons = generate_explanations(url)
-
-        return jsonify({
-            "status": "phishing",
-            "source": "Machine Learning Model",
-            "probability": round(float(probability), 3),
-            "reasons": reasons
-        })
-
-    else:
-        return jsonify({
-            "status": "legitimate",
-            "source": "Machine Learning Model",
-            "probability": round(float(probability), 3)
-        })
+    return jsonify({
+        "prediction": result,
+        "confidence": float(prob),
+        "explanation": explanation
+    })
 
 
-if __name__ == "__main__":
+# RUN
+if __name__ == '__main__':
     app.run(debug=True)
