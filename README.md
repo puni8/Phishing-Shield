@@ -1,79 +1,233 @@
-# 🛡 Phishing Shield - Real-Time Phishing Detection Extension
+# 🛡️ Phishing Shield – Hybrid AI-Based Phishing Detection System
 
-A browser extension that detects phishing websites in real-time using:
+## 🚀 Overview
 
-- Verified PhishTank database
-- Machine Learning URL analysis
-- Explainable security warning system
+**Phishing Shield** is a real-time browser-based phishing detection system that uses a **hybrid machine learning model** combined with **Explainable AI (XAI)** techniques to detect and explain malicious websites.
 
----
-
-##  Features
-
--  URL-based phishing detection
--  ML model for unknown threats
--  Database-based hard blocking
--  Structured warning page with risk level
--  Continue option for ML-only detections
--  Hard block for verified phishing URLs
--  No interference with legitimate sites
+The system integrates a **Chrome Extension frontend** with a **Flask-based backend API**, enabling real-time URL analysis and user-friendly security warnings.
 
 ---
 
-##  Architecture
+## 🧠 Key Features
 
-User URL  
-↓  
-Extension intercepts navigation  
-↓  
-Flask backend API  
-↓  
- PhishTank database check  
- ML prediction  
-↓  
-Explanation engine  
-↓  
-Warning UI (if phishing)
+* 🔍 **Hybrid ML Model**
+  Combines:
+
+  * Random Forest 🌲
+  * XGBoost ⚡
+  * LightGBM 🌿
+    using **soft voting (ensemble learning)** for improved accuracy.
+
+* 🧠 **Explainable AI (XAI)**
+
+  * **SHAP** → Accurate feature importance visualization
+  * **LIME** → Human-readable explanations
+
+* 🌐 **Real-Time Detection**
+  Detects phishing websites instantly via browser extension.
+
+* ⚠️ **User-Friendly Warning UI**
+
+  * Risk Level (High / Moderate / Low)
+  * Domain information (HTTPS, hostname)
+  * Feature-based explanation
+  * Action buttons (Go Back / Continue)
+
+* 🔄 **Live API Integration**
+
+  * Flask backend deployed on cloud
+  * Chrome extension communicates via REST API
 
 ---
 
-##  ML Model
+## 🏗️ System Architecture
 
-- TF-IDF vectorization
-- Logistic Regression classifier
-- Trained on:
-  - PhishTank dataset
-  - Tranco top domains
+```
+User → Chrome Extension
+        ↓
+   Flask API (Backend)
+        ↓
+ Hybrid ML Model (RF + XGB + LGBM)
+        ↓
+ Prediction + Probability
+        ↓
+ SHAP + LIME Explanation
+        ↓
+ Warning UI (Risk + Visual Insights)
+```
 
 ---
 
-##  Installation
+## 🧪 Machine Learning Model
 
-### Backend Setup
+### 🔹 Hybrid Ensemble Model
+
+* Implemented using `VotingClassifier (soft voting)`
+* Improves generalization and reduces model bias
+
+### 🔹 Feature Engineering
+
+Extracted from URL:
+
+* URL Length
+* Domain Length
+* Subdomains
+* Obfuscation (% encoding)
+* TLD Encoding
+* Special character patterns
+
+---
+
+## 📊 Explainability
+
+### 🔸 SHAP (SHapley Additive Explanations)
+
+* Provides **feature importance scores**
+* Used for **visual bar representation in UI**
+
+### 🔸 LIME (Local Interpretable Model-Agnostic Explanations)
+
+* Provides **human-readable reasoning**
+* Displays top contributing features
+
+---
+
+## 💻 Tech Stack
+
+### 🔹 Backend
+
+* Python 🐍
+* Flask
+* Scikit-learn
+* XGBoost
+* LightGBM
+* SHAP
+* LIME
+
+### 🔹 Frontend (Extension)
+
+* HTML, CSS, JavaScript
+* Chrome Extension APIs
+
+### 🔹 Deployment
+
+* Render (Cloud Hosting)
+* GitHub (Version Control)
+
+---
+
+## 📂 Project Structure
+
+```
+Phishing-Shield/
+│
+├── backend/
+│   ├── app.py
+│   ├── model.pkl              # Hybrid model
+│   ├── xgb_model.pkl          # For SHAP + LIME
+│   ├── scaler.pkl
+│   ├── feature_order.pkl
+│   ├── requirements.txt
+│   ├── Procfile
+│   └── runtime.txt
+│
+├── extension/
+│   ├── manifest.json
+│   ├── background.js
+│   ├── warning.html
+│   ├── warning.js
+│   └── style.css
+│
+└── README.md
+```
+
+---
+
+## ⚙️ Setup Instructions
+
+### 🔹 Backend (Local)
 
 ```bash
-cd backend
 pip install -r requirements.txt
 python app.py
+```
 
-Backend runs on:
-http://127.0.0.1:5000
+---
 
-Extension Setup
+### 🔹 Chrome Extension
 
-1. Open Chrome
-2. Go to chrome://extensions
-3. Enable Developer Mode
-4. Click "Load Unpacked"
-5. Select extension/ folder
+1. Open Chrome → `chrome://extensions/`
+2. Enable **Developer Mode**
+3. Click **Load unpacked**
+4. Select `extension/` folder
 
- Detection Logic
+---
 
-Case	                    Behavior
-URL in PhishTank	    Hard block
-ML High Risk	            Warning + Continue
-Legitimate	            No UI
+## 🌍 Deployment
 
-Disclaimer
+* Backend deployed using **Render**
+* API Endpoint:
 
-This project is for educational purposes only.
+```
+https://your-app.onrender.com/predict
+```
+
+---
+
+## 📡 API Usage
+
+### POST `/predict`
+
+#### Request:
+
+```json
+{
+  "url": "http://example.com"
+}
+```
+
+#### Response:
+
+```json
+{
+  "prediction": "Phishing",
+  "confidence": 85.2,
+  "lime_explanation": ["URL too long", "has obfuscation"],
+  "feature_importance": {
+    "URLLength": 0.92,
+    "NoOfSubDomain": 0.81
+  }
+}
+```
+
+---
+
+## 🎯 Results
+
+* ✅ Improved accuracy using hybrid ensemble model
+* ✅ Real-time phishing detection
+* ✅ Explainable predictions (SHAP + LIME)
+* ✅ User-centric warning interface
+
+---
+
+## 🧠 Future Enhancements
+
+* 🌐 WHOIS API integration (domain age detection)
+* 📊 SHAP graph visualization
+* 🧾 Logging & analytics dashboard
+* 🛡️ Blacklist/whitelist system
+* 📦 Chrome Web Store deployment
+
+---
+
+## 👨‍💻 Author
+
+Developed as a **Final Year B.Tech Cyber Security Project**
+Focused on **real-world phishing detection with Explainable AI**
+
+---
+
+## 📜 License
+
+This project is for academic and educational purposes.
