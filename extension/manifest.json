@@ -1,36 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "Phishing Shield",
+  "name": "Phishing Detection Extension",
   "version": "1.0",
-  "description": "Real-time phishing detection with ML and database verification.",
-  
-  "permissions": [
-    "tabs",
-    "webNavigation"
-  ],
-
-  "host_permissions": [
-    "http://127.0.0.1:5000/*",
-    "http://*/*",
-    "https://*/*"
-  ],
-
+  "description": "Detects phishing websites using ML",
+  "permissions": ["tabs", "storage", "scripting"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
-
   "web_accessible_resources": [
     {
-      "resources": [
-        "warning.html",
-        "warning.css",
-        "warning.js"
-      ],
+      "resources": ["warning.html", "style.css", "warning.js"],
       "matches": ["<all_urls>"]
     }
   ],
-
   "action": {
-    "default_title": "Phishing Shield"
+    "default_title": "Phishing Detector"
   }
 }
