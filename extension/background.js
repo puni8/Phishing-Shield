@@ -1,83 +1,65 @@
-let temporarilyAllowed = new Set();
-
-const safeDomains = [
-    "google.com",
-    "bing.com",
-    "yahoo.com",
-    "duckduckgo.com",
-    "youtube.com",
-    "wikipedia.org",
-    "github.com",
-    "microsoft.com",
-    "amazon.com",
-    "facebook.com"
-];
-
-function extractDomain(url) {
-    try {
-        return new URL(url).hostname.replace("www.", "");
-    } catch {
-        return "";
-    }
-}
-
-chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+chrome.webNavigation.onCompleted.addListener(function(details) {
 
     if (details.frameId !== 0) return;
 
-    const tabId = details.tabId;
-    const url = details.url;
+    chrome.tabs.get(details.tabId, function(tab) {
+        let url = tab.url;
 
-    if (!url.startsWith("http")) return;
-    if (url.startsWith("chrome-extension://")) return;
+        if (!url || !url.startsWith("http")) return;
+        if (url.includes("warning.html")) return;
 
-    if (temporarilyAllowed.has(url)) {
-        temporarilyAllowed.delete(url);
-        return;
-    }
-
-    const domain = extractDomain(url);
-
-    if (safeDomains.some(d => domain.endsWith(d))) {
-        return;
-    }
-
-    try {
-        const response = await fetch("http://127.0.0.1:5000/predict", {
+        fetch("http://127.0.0.1:5000/predict", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ url: url })
-        });
+        })
+        .then(res => res.json())
+        .then(data => {
 
-        const result = await response.json();
+            if (data.prediction === "Phishing") {
 
-        if (result.status === "phishing") {
+                let score = Math.round(data.confidence);
 
-            const warningUrl =
-                chrome.runtime.getURL("warning.html") +
-                `?url=${encodeURIComponent(url)}` +
-                `&source=${encodeURIComponent(result.source)}` +
-                `&prob=${result.probability || ""}` +
-                `&reasons=${encodeURIComponent(
-                    result.reasons ? result.reasons.join(" | ") : ""
-                )}`;
+                let level = "LOW";
+                if (score >= 70) level = "HIGH";
+                else if (score >= 40) level = "MODERATE";
 
-            chrome.tabs.update(tabId, { url: warningUrl });
-        }
+                let explanationText = "";
+                if (Array.isArray(data.explanation)) {
+                    explanationText = data.explanation.join("\n• ");
+                } else if (typeof data.explanation === "object") {
+                    explanationText = Object.values(data.explanation).join("\n• ");
+                } else {
+                    explanationText = data.explanation || "No details available";
+                }
 
-    } catch (error) {
-        console.log("Fetch error:", error);
-    }
+                // Domain Info
+                let urlObj = new URL(url);
+                let domainInfo = {
+                    hostname: urlObj.hostname,
+                    protocol: urlObj.protocol,
+                    isSecure: urlObj.protocol === "https:"
+                };
 
-}, { url: [{ schemes: ["http", "https"] }] });
+                chrome.storage.local.set({
+                    original_url: url,
+                    risk_score: score,
+                    risk_level: level,
+                    explanation: explanationText,
+                    feature_importance: data.feature_importance || {},
+                    domain_info: domainInfo
+                }, () => {
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                    chrome.tabs.update(details.tabId, {
+                        url: chrome.runtime.getURL("warning.html")
+                    });
 
-    if (message.action === "allowUrl" && message.url) {
-        temporarilyAllowed.add(message.url);
-        sendResponse({ status: "allowed" });
-    }
+                });
+            }
+        })
+        .catch(err => console.log("Error:", err));
+    });
 
 });
