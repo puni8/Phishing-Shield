@@ -1,55 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Security Warning</title>
-    <link rel="stylesheet" href="warning.css">
+<meta charset="UTF-8">
+<title>Security Warning</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="overlay">
-    <div class="card">
+<!-- Loader -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Scanning website for threats...</p>
+</div>
 
-        <div class="header">
-            <div class="icon">&#128737;</div>
-            <div>
-                <h1>Security Warning</h1>
-                <p id="riskLevel" class="risk-level"></p>
-            </div>
-        </div>
+<!-- Main UI -->
+<div class="container" id="mainContent" style="display:none;">
 
-        <p id="mainMessage" class="main-message"></p>
+    <div class="icon" id="riskIcon">⚠️</div>
+    <h1 id="riskTitle">Security Warning</h1>
 
-        <div class="info-section">
-            <p><strong>Blocked URL:</strong></p>
-            <p id="url" class="url"></p>
+    <div class="badge" id="riskBadge">RISK</div>
 
-            <p><strong>Detection Source:</strong></p>
-            <p id="source"></p>
-
-            <div id="probabilitySection" style="display:none;">
-                <p><strong>Confidence Level:</strong></p>
-                <p id="prob"></p>
-            </div>
-        </div>
-
-        <div class="reason-section">
-            <h3>Threat Indicators</h3>
-            <ul id="reasons"></ul>
-        </div>
-
-        <div class="footer">
-            <button id="continueBtn" class="continue-btn" style="display:none;">
-                Continue Anyway
-            </button>
-
-            <button id="backBtn" class="back-btn">
-                Return to Safety
-            </button>
-        </div>
-
+    <!-- Domain Info -->
+    <div class="domain-box">
+        <p><strong>Domain:</strong> <span id="domainName"></span></p>
+        <p><strong>Connection:</strong> <span id="connectionType"></span></p>
     </div>
+
+    <!-- Explanation -->
+    <div class="explanation" id="explanation"></div>
+
+    <!-- Feature Importance -->
+    <div class="features">
+        <h3>Why this is phishing</h3>
+        <div id="featureList"></div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="buttons">
+        <button class="safe" id="backBtn">🔙 Go Back</button>
+        <button class="danger" id="proceedBtn">Continue Anyway</button>
+    </div>
+
 </div>
 
 <script src="warning.js"></script>
+
 </body>
 </html>
